@@ -1,0 +1,95 @@
+import pyttsx3
+import datetime
+import speech_recognition as sr
+import wikipedia
+import webbrowser
+import time
+import scipy.io.wavfile as wav
+import sounddevice as sd
+
+
+
+chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+
+webbrowser.register("chrome",None,webbrowser.BackgroundBrowser(chrome_path))
+
+
+
+engine = pyttsx3.init('sapi5')
+voices = engine.getProperty('voices')
+print(voices[1].id)
+engine.setProperty('voice',voices[0].id)
+
+
+def speak(audio):
+    engine.say(audio)
+    engine.runAndWait()
+    
+    
+def wishMe():
+    hour = int(datetime.datetime.now().hour)
+    
+    if hour>=0 and hour<12:
+        speak("Good Morning")
+        
+    elif hour>=12 and hour<18:
+        speak("Good Afternoon")
+        
+    else:
+        speak("Good Evening")
+        
+    speak("Hii I am Jarvis sir.Please tell me how I can help you")
+    
+def takeCommand():
+    #It takes microphone input from the user and returns string output
+
+    r = sr.Recognizer()
+    
+    with sr.Microphone() as source:
+        print("Listening...")
+        r.pause_threshold = 1
+        audio = r.listen(source)
+        
+    try:
+        print("Recognising.......")
+        query = r.recognize_google(audio,language='en-in')#Using google for voice recognition.
+        print(f"User said: {query}\n")  #User query will be printed.
+        
+    except Exception as e:
+       #print(e)
+       print("Say that again please...")
+       return "NONE"
+   
+    return query
+
+
+if __name__=="__main__":
+    #wishMe()
+    m=0
+    t_me = int(input("Please Enter the time of your meet : "))
+    meetlink = input("Enter Your Meeting URL")
+    while True:
+        query = takeCommand().lower()
+        
+        strtime= datetime.datetime.now().strftime('%H:%M:%S')
+        hour = int(strtime[:2])
+        minute = int(strtime[3:5])
+        seconds = int(strtime[6:])
+        
+        if 'wikipedia' in query:
+             speak("Searching wikipedia....")
+             query = query.replace("wikipedia","")
+             results = wikipedia.summary(query,sentences=2)
+             speak("According to wikipedia")
+             speak(results)
+             print(results)
+             
+        elif 'website open' in query:
+             print('which url do you want')
+             url = takeCommand().lower()
+             webbrowser.get("chrome").open_new_tab(url) 
+             
+        elif hour==t_me and m==0:
+            m=m+1
+            webbrowser.get(meetlink)
+   
